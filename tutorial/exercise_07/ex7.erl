@@ -1,5 +1,5 @@
 -module(ex7).
--export([convert/2, maxitem/2, maxitem/1, diff/3]).
+-export([convert/2, maxitem/1, diff/3]).
 
 convert(X,inch) -> {cm, X * 2.54};
 convert(X,cm) -> {inch, X * 0.393701}.
@@ -13,7 +13,6 @@ maxitem([X|XS]) ->
     maxitem(XS,X).
 
 maxitem([], Acc) -> Acc;
-
 % Variante 1:
 %maxitem([X|XS], Acc) when X > Acc -> maxitem(XS,X);
 %maxitem([_|XS], Acc) -> maxitem(XS,Acc).
