@@ -22,7 +22,7 @@ clock_ra(Speed, Val, running) ->
         pause -> clock_ra(Speed, Val, paused);
         stop -> ok
     after 
-        Speed * 1000 -> clock_ra(Speed, Val + 1, running)
+        Speed -> clock_ra(Speed, Val + 1, running)
     end.
 
 % b)
@@ -46,7 +46,7 @@ get_ra(ClockID) ->
 ticker(Speed, ClockPID) ->
     receive
     after
-        Speed * 1000 -> ClockPID ! {tick, self()}, ticker(Speed, ClockPID)
+        Speed -> ClockPID ! {tick, self()}, ticker(Speed, ClockPID)
     end.
 
 

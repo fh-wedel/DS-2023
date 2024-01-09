@@ -7,7 +7,7 @@
 ticker(Speed, ClockPID) ->
     receive
     after
-        Speed * 1000 -> ClockPID ! tick, ticker(Speed, ClockPID)
+        Speed -> ClockPID ! tick, ticker(Speed, ClockPID)
     end.
 
 % paused
