@@ -55,6 +55,7 @@ clock(Val, paused) ->
         {set, Value} -> clock(Value, paused);
         {get, Pid} -> Pid ! {clock, Val}, clock(Val, paused);
         resume -> clock(Val, running);
+        tick ->  clock(Val, paused);
         stop -> ok
     end;
 % running
