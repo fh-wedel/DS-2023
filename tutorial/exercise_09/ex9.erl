@@ -1,7 +1,7 @@
 % Exercise 9: Timers
 
 -module(ex9).
--export([start_ra/1,get_ra/1,start/1,get/1]).
+-export([start_ra/1, get_ra/1, start/1, get/1, startEvilTicker/2]).
 
 
 % a)
@@ -46,31 +46,37 @@ get_ra(ClockID) ->
 ticker(Speed, ClockPID) ->
     receive
     after
-        Speed * 1000 -> ClockPID ! tick, ticker(Speed, ClockPID)
+        Speed * 1000 -> ClockPID ! {tick, self()}, ticker(Speed, ClockPID)
     end.
 
-% paused
-clock(Val, paused) ->
+
+clock(Val, undefined, init) ->
     receive
-        {set, Value} -> clock(Value, paused);
-        {get, Pid} -> Pid ! {clock, Val}, clock(Val, paused);
-        resume -> clock(Val, running);
-        tick ->  clock(Val, paused);
+        {start_clock, TickerID} -> clock(Val, TickerID, running) 
+    end;
+% paused
+clock(Val, TickerID, paused) ->
+    receive
+        {set, Value} -> clock(Value, TickerID, paused);
+        {get, Pid} -> Pid ! {clock, Val}, clock(Val, TickerID, paused);
+        resume -> clock(Val, TickerID, running);
+        tick -> clock(Val, TickerID, paused);
         stop -> ok
     end;
 % running
-clock(Val, running) ->
+clock(Val, TickerID, running) ->
     receive
-        {set, Value} -> clock(Value, running);
-        {get, Pid} -> Pid ! {clock, Val}, clock(Val, running);
-        pause -> clock( Val, paused);
-        tick -> clock(Val + 1, running);
+        {set, Value} -> clock(Value, TickerID, running);
+        {get, Pid} -> Pid ! {clock, Val}, clock(Val, TickerID, running);
+        pause -> clock( Val, TickerID, paused);
+        {tick, Sender} when Sender == TickerID -> clock(Val + 1, TickerID, running);
         stop -> ok
     end.
 
 start(Speed) ->
-    Clock = spawn(fun() -> clock(0, running) end),
-    spawn(fun() -> ticker(Speed, Clock) end),
+    Clock = spawn(fun() -> clock(0, undefined, init) end),
+    Ticker = spawn(fun() -> ticker(Speed, Clock) end),
+    Clock ! {start_clock, Ticker},
     Clock.
 
 get(ClockID) -> 
@@ -78,3 +84,6 @@ get(ClockID) ->
     receive 
         {clock, Val} -> Val 
     end.
+
+startEvilTicker(Speed, Clock) ->
+    spawn(fun() -> ticker(Speed, Clock) end).
